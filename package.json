@@ -5,20 +5,39 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "bun test",
+    "typecheck": "next typegen && tsc --noEmit -p .",
+    "seed": "bun scripts/seed-test-albums.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.1172.0",
+    "@aws-sdk/s3-request-presigner": "3.1172.0",
+    "@base-ui/react": "1.9.0",
+    "arctic": "3.7.0",
+    "class-variance-authority": "0.7.1",
+    "cn": "0.5.2",
+    "exifr": "7.1.3",
+    "iron-session": "9.1.0",
+    "lucide-react": "1.75.0",
     "next": "16.4.6",
-    "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "next-themes": "0.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
+    "shadcn": "4.23.0",
+    "sonner": "2.0.8",
+    "tw-animate-css": "1.4.0"
   },
   "devDependencies": {
-    "@tailwindcss/turbopack": "4.3.3",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "tailwindcss": "4.3.3",
-    "typescript": "^5"
+    "@tailwindcss/turbopack": "4.3.5",
+    "@types/bun": "1.4.4",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "sharp": "0.35.5",
+    "tailwindcss": "4.3.5",
+    "typescript": "6.0.3"
   },
   "packageManager": "bun@1.4.4",
   "ignoreScripts": [
