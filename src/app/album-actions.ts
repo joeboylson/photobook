@@ -10,6 +10,7 @@ import {
   createEmptyAlbum,
   removePhotoFromAlbum,
   reorderAlbumPhotos,
+  setAlbumCover,
 } from "@/lib/albums/album-rules";
 import {
   createAlbum,
@@ -20,13 +21,13 @@ import {
 } from "@/lib/albums/album-store";
 import type { Photo, PhotoSize } from "@/lib/albums/album-types";
 import { hashPassword } from "@/lib/auth/password";
+import { PHOTO_ID_PATTERN } from "@/lib/constants";
 import { requireEditor } from "@/lib/auth/session";
 import { buildPhotoKey } from "@/lib/storage/object-keys";
 import { isWriteConflict, signPhotoUploadUrl } from "@/lib/storage/object-store";
 
 export type FormResult = { error: string | null; savedAt: number | null };
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 const nowIso = () => new Date().toISOString();
 
@@ -91,7 +92,7 @@ export async function requestPhotoUploadAction(slug: string): Promise<PhotoUploa
 }
 
 const isValidNewPhoto = (photo: Photo): boolean =>
-  UUID_PATTERN.test(photo.id) &&
+  PHOTO_ID_PATTERN.test(photo.id) &&
   Number.isInteger(photo.width) &&
   photo.width > 0 &&
   Number.isInteger(photo.height) &&
@@ -120,6 +121,13 @@ export async function reorderPhotosAction(slug: string, orderedPhotoIds: string[
   await requireEditor();
   const { value: album, etag } = await readAlbumOrThrow(slug);
   await saveAlbum(reorderAlbumPhotos(album, orderedPhotoIds, nowIso()), etag);
+  refreshAllPages();
+}
+
+export async function setCoverPhotoAction(slug: string, photoId: string): Promise<void> {
+  await requireEditor();
+  const { value: album, etag } = await readAlbumOrThrow(slug);
+  await saveAlbum(setAlbumCover(album, photoId, nowIso()), etag);
   refreshAllPages();
 }
 

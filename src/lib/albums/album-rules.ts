@@ -28,13 +28,24 @@ export const getAlbumVisibility = (album: Pick<Album, "slug" | "access">, viewer
   return isUnlocked ? "visible" : "needs-password";
 };
 
+/** The chosen cover, or the first photo when none is chosen or the chosen one was removed. */
+export const getCoverPhotoId = (album: Album): string | null => {
+  const hasChosenCover = album.photos.some((photo) => photo.id === album.coverPhotoId);
+  return hasChosenCover ? album.coverPhotoId : (album.photos[0]?.id ?? null);
+};
+
+export const setAlbumCover = (album: Album, photoId: string, now: string): Album => {
+  if (!album.photos.some((photo) => photo.id === photoId)) throw new Error("That photo isn't in this album");
+  return { ...album, coverPhotoId: photoId, updatedAt: now };
+};
+
 export const summarizeAlbum = (album: Album): AlbumSummary => ({
   slug: album.slug,
   title: album.title,
   access: album.access,
   month: album.month,
   photoCount: album.photos.length,
-  coverPhotoId: album.photos[0]?.id ?? null,
+  coverPhotoId: getCoverPhotoId(album),
 });
 
 /** The albums a viewer sees listed on the home page: everything except private albums, unless they're an editor. */
@@ -76,6 +87,7 @@ export const reorderAlbumPhotos = (album: Album, orderedPhotoIds: string[], now:
 export const removePhotoFromAlbum = (album: Album, photoId: string, now: string): Album => ({
   ...album,
   photos: album.photos.filter((photo) => photo.id !== photoId),
+  coverPhotoId: album.coverPhotoId === photoId ? null : album.coverPhotoId,
   updatedAt: now,
 });
 
@@ -93,6 +105,7 @@ export const createEmptyAlbum = (title: string, settings: Omit<AlbumSettings, "t
   access: settings.access,
   passwordHash: settings.access === "password" ? settings.passwordHash : null,
   photos: [],
+  coverPhotoId: null,
   createdAt: now,
   updatedAt: now,
 });

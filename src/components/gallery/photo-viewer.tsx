@@ -2,8 +2,11 @@
 
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { signPhotoDownloadAction } from "@/app/(gallery)/albums/[slug]/actions";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import type { ViewerPhoto } from "@/lib/albums/album-types";
 import { cn } from "@/lib/utils";
 import { Lightbox } from "./lightbox";
@@ -63,10 +66,12 @@ function FadeInPhoto({
 
 /** Full-screen view of one photo, with arrows, keys and swipes to step through the rest. */
 export function PhotoViewer({
+  slug,
   photos,
   openPhotoId,
   onOpenPhoto,
 }: {
+  slug: string;
   photos: ViewerPhoto[];
   openPhotoId: string | null;
   onOpenPhoto: (photoId: string | null, shouldReplace?: boolean) => void;
@@ -76,6 +81,17 @@ export function PhotoViewer({
   const previousPhoto = index > 0 ? photos[index - 1] : null;
   const nextPhoto = index >= 0 && index < photos.length - 1 ? photos[index + 1] : null;
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isPreparingDownload, startPreparingDownload] = useTransition();
+
+  // The link says "save this file", so going to it downloads without leaving the page.
+  const downloadPhoto = (photoId: string) =>
+    startPreparingDownload(async () => {
+      try {
+        window.location.assign(await signPhotoDownloadAction(slug, photoId));
+      } catch {
+        toast.error("Couldn't download this photo");
+      }
+    });
 
   const showPrevious = previousPhoto && (() => onOpenPhoto(previousPhoto.id, true));
   const showNext = nextPhoto && (() => onOpenPhoto(nextPhoto.id, true));
@@ -157,11 +173,11 @@ export function PhotoViewer({
                   variant="secondary"
                   size="icon"
                   aria-label="Download photo"
-                  nativeButton={false}
-                  render={<a href={photo.downloadUrl} download />}
+                  disabled={isPreparingDownload}
+                  onClick={() => downloadPhoto(photo.id)}
                   className="absolute top-2 right-2 rounded-full opacity-80 hover:opacity-100"
                 >
-                  <Download />
+                  {isPreparingDownload ? <Spinner /> : <Download />}
                 </Button>
               </div>
 

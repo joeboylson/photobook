@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownUp, Ellipsis, Trash2 } from "lucide-react";
+import { ArrowDownUp, Ellipsis, ImageMinus, Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { deleteAlbumAction } from "@/app/album-actions";
 import {
@@ -21,7 +21,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { AlbumAccess, ViewerPhoto } from "@/lib/albums/album-types";
 import { AlbumSettingsForm } from "./album-settings-form";
-import { EditablePhotoGrid } from "./editable-photo-grid";
+import { CoverPhotoPicker } from "./cover-photo-picker";
 import { PhotoUploader } from "./photo-uploader";
 
 export type EditableAlbum = {
@@ -30,6 +30,7 @@ export type EditableAlbum = {
   month: string | null;
   access: AlbumAccess;
   hasPassword: boolean;
+  coverPhotoId: string | null;
 };
 
 const EDIT_LABEL = "Edit album";
@@ -67,10 +68,12 @@ export function AlbumEditSheet({
   album,
   photos,
   onReorderPhotos,
+  onRemovePhotos,
 }: {
   album: EditableAlbum;
   photos: ViewerPhoto[];
   onReorderPhotos: () => void;
+  onRemovePhotos: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const canReorder = photos.length >= MIN_PHOTOS_TO_REORDER;
@@ -90,6 +93,8 @@ export function AlbumEditSheet({
           <SheetTitle>{EDIT_LABEL}</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col gap-6 px-4 pb-6">
+          <CoverPhotoPicker slug={album.slug} photos={photos} coverPhotoId={album.coverPhotoId} />
+          <Separator />
           <AlbumSettingsForm
             slug={album.slug}
             title={album.title}
@@ -103,6 +108,9 @@ export function AlbumEditSheet({
               <h3 className="flex-1 text-sm font-medium">
                 Photos <span className="text-muted-foreground tabular-nums">{photos.length}</span>
               </h3>
+              <PhotoUploader slug={album.slug} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 className={REORDER_BUTTON_CLASS}
                 disabled={!canReorder}
@@ -113,9 +121,17 @@ export function AlbumEditSheet({
               >
                 <ArrowDownUp /> Reorder photos
               </Button>
-              <PhotoUploader slug={album.slug} />
+              <Button
+                variant="destructive"
+                disabled={photos.length === 0}
+                onClick={() => {
+                  setIsOpen(false);
+                  onRemovePhotos();
+                }}
+              >
+                <ImageMinus /> Remove photos
+              </Button>
             </div>
-            <EditablePhotoGrid slug={album.slug} photos={photos} />
           </section>
           <Separator />
           <DeleteAlbumButton slug={album.slug} title={album.title} />

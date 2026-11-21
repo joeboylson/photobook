@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AlbumGallery } from "@/components/gallery/album-gallery";
-import { getAlbumVisibility } from "@/lib/albums/album-rules";
+import { getAlbumVisibility, getCoverPhotoId } from "@/lib/albums/album-rules";
 import { readAlbum } from "@/lib/albums/album-store";
 import { signViewerPhotos } from "@/lib/albums/viewer-photos";
 import { getViewer } from "@/lib/auth/session";
@@ -34,9 +34,11 @@ export default async function AlbumPage({ params }: PageProps<"/albums/[slug]">)
         month: album.month,
         access: album.access,
         hasPassword: Boolean(album.passwordHash),
+        coverPhotoId: getCoverPhotoId(album),
       }
     : null;
-  const [photos, savedGridSize] = await Promise.all([signViewerPhotos(album.slug, album.photos), readSavedGridSize()]);
+  const photos = signViewerPhotos(album.photos);
+  const savedGridSize = await readSavedGridSize();
   return (
     <AlbumGallery
       slug={album.slug}

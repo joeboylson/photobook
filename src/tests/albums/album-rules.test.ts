@@ -3,11 +3,13 @@ import {
   addPhotosToAlbum,
   applyAlbumSettings,
   createEmptyAlbum,
+  getCoverPhotoId,
   getAlbumVisibility,
   isAlbumAccess,
   listVisibleSummaries,
   removePhotoFromAlbum,
   reorderAlbumPhotos,
+  setAlbumCover,
   slugifyTitle,
   summarizeAlbum,
 } from "@/lib/albums/album-rules";
@@ -126,6 +128,32 @@ describe("reorderAlbumPhotos", () => {
     expect(() => reorderAlbumPhotos(album, ["a", "b"], LATER)).toThrow();
     expect(() => reorderAlbumPhotos(album, ["a", "a", "b"], LATER)).toThrow();
     expect(() => reorderAlbumPhotos(album, ["a", "b", "z"], LATER)).toThrow();
+  });
+});
+
+describe("album cover", () => {
+  const photos = [buildPhoto("a", null), buildPhoto("b", null)];
+
+  test("is the first photo until one is chosen", () => {
+    expect(getCoverPhotoId(buildAlbum({ photos }))).toBe("a");
+    expect(getCoverPhotoId(buildAlbum())).toBeNull();
+  });
+
+  test("is the chosen photo once set", () => {
+    const album = setAlbumCover(buildAlbum({ photos }), "b", LATER);
+    expect(getCoverPhotoId(album)).toBe("b");
+    expect(summarizeAlbum(album).coverPhotoId).toBe("b");
+    expect(album.updatedAt).toBe(LATER);
+  });
+
+  test("can't be a photo from outside the album", () => {
+    expect(() => setAlbumCover(buildAlbum({ photos }), "z", LATER)).toThrow();
+  });
+
+  test("falls back to the first photo when the chosen one is removed", () => {
+    const album = removePhotoFromAlbum(setAlbumCover(buildAlbum({ photos }), "b", LATER), "b", LATER);
+    expect(album.coverPhotoId).toBeNull();
+    expect(getCoverPhotoId(album)).toBe("a");
   });
 });
 

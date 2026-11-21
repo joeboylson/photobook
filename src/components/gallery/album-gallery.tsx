@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { reorderPhotosAction } from "@/app/album-actions";
 import { AlbumEditSheet, type EditableAlbum } from "@/components/edit/album-edit-sheet";
+import { RemovablePhotoGrid } from "@/components/edit/removable-photo-grid";
 import { ReorderablePhotoGrid } from "@/components/edit/reorderable-photo-grid";
 import { REORDER_BUTTON_CLASS } from "@/components/button-colors";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ export function AlbumGallery({
   editableAlbum: EditableAlbum | null;
 }) {
   const [gridSize, setGridSize] = useState<GridSize>(savedGridSize);
-  const [isReordering, setIsReordering] = useState(false);
+  const [mode, setMode] = useState<"view" | "reorder" | "remove">("view");
   const [isSavingOrder, startSavingOrder] = useTransition();
   const { openPhotoId, openPhoto } = useOpenPhoto();
 
@@ -53,7 +54,7 @@ export function AlbumGallery({
       } catch {
         toast.error("Couldn't save the new order");
         // Leaving reorder mode shows the order that's actually saved.
-        setIsReordering(false);
+        setMode("view");
       }
     });
 
@@ -67,14 +68,23 @@ export function AlbumGallery({
             <span className="text-sm font-normal text-muted-foreground tabular-nums">{photos.length}</span>
           </h1>
           <GridSizeToggle gridSize={gridSize} onChange={changeGridSize} />
-          {isReordering ? (
-            <Button size="sm" className={REORDER_BUTTON_CLASS} onClick={() => setIsReordering(false)} disabled={isSavingOrder}>
+          {mode === "reorder" && (
+            <Button size="sm" className={REORDER_BUTTON_CLASS} onClick={() => setMode("view")} disabled={isSavingOrder}>
               {isSavingOrder ? <Spinner /> : <Check />} Done
             </Button>
-          ) : (
-            editableAlbum && (
-              <AlbumEditSheet album={editableAlbum} photos={photos} onReorderPhotos={() => setIsReordering(true)} />
-            )
+          )}
+          {mode === "remove" && (
+            <Button size="sm" variant="destructive" onClick={() => setMode("view")}>
+              <Check /> Done
+            </Button>
+          )}
+          {mode === "view" && editableAlbum && (
+            <AlbumEditSheet
+              album={editableAlbum}
+              photos={photos}
+              onReorderPhotos={() => setMode("reorder")}
+              onRemovePhotos={() => setMode("remove")}
+            />
           )}
         </div>
       </header>
@@ -85,13 +95,15 @@ export function AlbumGallery({
               <EmptyTitle>No photos</EmptyTitle>
             </EmptyHeader>
           </Empty>
-        ) : isReordering ? (
+        ) : mode === "reorder" ? (
           <ReorderablePhotoGrid photos={photos} gridSize={gridSize} isSaving={isSavingOrder} onReorder={saveOrder} />
+        ) : mode === "remove" ? (
+          <RemovablePhotoGrid slug={slug} photos={photos} gridSize={gridSize} />
         ) : (
           <PhotoGrid photos={photos} gridSize={gridSize} onOpenPhoto={openPhoto} />
         )}
       </div>
-      <PhotoViewer photos={photos} openPhotoId={openPhotoId} onOpenPhoto={openPhoto} />
+      <PhotoViewer slug={slug} photos={photos} openPhotoId={openPhotoId} onOpenPhoto={openPhoto} />
     </div>
   );
 }

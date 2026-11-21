@@ -11,15 +11,13 @@ export default async function HomePage() {
   const viewer = await getViewer();
   const summaries = listVisibleSummaries(await listAlbumSummaries(), viewer);
   // A locked album shows no cover, so its photos stay hidden until the password is entered.
-  const albums: AlbumCard[] = await Promise.all(
-    summaries.map(async (summary) => {
-      const isOpenToViewer = getAlbumVisibility(summary, viewer) === "visible";
-      return { ...summary, coverUrl: isOpenToViewer ? await signCoverUrl(summary.coverPhotoId) : null };
-    }),
-  );
+  const albums: AlbumCard[] = summaries.map((summary) => {
+    const isOpenToViewer = getAlbumVisibility(summary, viewer) === "visible";
+    return { ...summary, isOpenToViewer, coverUrl: isOpenToViewer ? signCoverUrl(summary.coverPhotoId) : null };
+  });
 
   return (
-    <div className="mx-auto max-w-[1600px] px-4">
+    <div className="mx-auto w-full max-w-[1600px] px-4">
       <header className="flex items-center gap-2 py-4">
         <SidebarTrigger />
         <h1 className="flex-1 text-lg font-semibold">{SITE_NAME}</h1>

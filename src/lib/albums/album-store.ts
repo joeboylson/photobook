@@ -16,13 +16,16 @@ const PHOTO_SIZE_NAMES = Object.keys(PHOTO_SIZES) as PhotoSize[];
 export const listPhotoObjectKeys = (photoId: string): string[] =>
   PHOTO_SIZE_NAMES.map((size) => buildPhotoKey(photoId, size));
 
-// Albums saved before albums had months have no month field at all.
-type SavedAlbum = Omit<Album, "month"> & { month?: string | null };
+// Albums saved before months and covers existed have neither field at all.
+type SavedAlbum = Omit<Album, "month" | "coverPhotoId"> & { month?: string | null; coverPhotoId?: string | null };
 
 export const readAlbum = async (slug: string): Promise<StoredJson<Album> | null> => {
   const stored = await readJsonObject<SavedAlbum>(buildAlbumKey(slug));
   if (!stored) return null;
-  return { ...stored, value: { ...stored.value, month: stored.value.month ?? null } };
+  return {
+    ...stored,
+    value: { ...stored.value, month: stored.value.month ?? null, coverPhotoId: stored.value.coverPhotoId ?? null },
+  };
 };
 
 export const listAlbums = async (): Promise<Album[]> => {

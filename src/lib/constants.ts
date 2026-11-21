@@ -11,6 +11,10 @@ export const PHOTO_SIZES = {
 
 export const PHOTO_CONTENT_TYPE = "image/webp";
 export const PHOTO_FILE_EXTENSION = "webp";
+export const PHOTO_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+// Pages link to photos through this app route rather than straight to S3; see photo-links.ts.
+export const PHOTO_ROUTE_PREFIX = "/photos";
+export const MS_PER_SECOND = 1000;
 
 export const ALBUMS_PREFIX = "albums/";
 export const PHOTOS_PREFIX = "photos/";

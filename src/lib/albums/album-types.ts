@@ -22,6 +22,8 @@ export type Album = {
   /** Only set for password albums. Never sent to the browser. */
   passwordHash: string | null;
   photos: Photo[];
+  /** The photo chosen to stand for the album. Null means the first photo. */
+  coverPhotoId: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -38,8 +40,6 @@ export type AlbumSummary = {
 export type ViewerPhoto = Photo & {
   thumbUrl: string;
   fullUrl: string;
-  /** The full-size copy again, but the browser saves it instead of showing it. */
-  downloadUrl: string;
 };
 
 export type Viewer = {
