@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ACCESS_DETAILS } from "@/components/albums/access-icon";
+import { AlbumMonthField } from "./album-month-field";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,13 +14,15 @@ const ACCESS_ITEMS = ALBUM_ACCESS_LEVELS.map((level) => ({ value: level, label: 
 
 /** Name, who can see it, and the password when it needs one. Shared by the create and settings forms. */
 export function AlbumSettingsFields({
-  defaultTitle = "",
-  defaultAccess = "private",
-  hasExistingPassword = false,
+  defaultTitle,
+  defaultMonth,
+  defaultAccess,
+  hasExistingPassword,
 }: {
-  defaultTitle?: string;
-  defaultAccess?: AlbumAccess;
-  hasExistingPassword?: boolean;
+  defaultTitle: string;
+  defaultMonth: string | null;
+  defaultAccess: AlbumAccess;
+  hasExistingPassword: boolean;
 }) {
   const [access, setAccess] = useState<AlbumAccess>(defaultAccess);
 
@@ -29,6 +32,7 @@ export function AlbumSettingsFields({
         <FieldLabel htmlFor="album-title">Name</FieldLabel>
         <Input id="album-title" name="title" defaultValue={defaultTitle} required />
       </Field>
+      <AlbumMonthField defaultMonth={defaultMonth} />
       <Field>
         <FieldLabel htmlFor="album-access">Who can see it</FieldLabel>
         <input type="hidden" name="access" value={access} />

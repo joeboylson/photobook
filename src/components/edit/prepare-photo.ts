@@ -3,7 +3,7 @@ import type { Photo, PhotoSize } from "@/lib/albums/album-types";
 import { PHOTO_CONTENT_TYPE, PHOTO_SIZES } from "@/lib/constants";
 import { type Dimensions, fitWithinEdge } from "@/lib/photos/photo-dimensions";
 import { formatLocalDateTime } from "@/lib/photos/taken-at";
-import type { PhotoUpload } from "@/app/edit/actions";
+import type { PhotoUpload } from "@/app/album-actions";
 
 type RenderedSize = { blob: Blob; dimensions: Dimensions };
 

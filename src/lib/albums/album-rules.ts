@@ -32,6 +32,7 @@ export const summarizeAlbum = (album: Album): AlbumSummary => ({
   slug: album.slug,
   title: album.title,
   access: album.access,
+  month: album.month,
   photoCount: album.photos.length,
   coverPhotoId: album.photos[0]?.id ?? null,
 });
@@ -49,11 +50,26 @@ const compareByTakenAt = (first: Photo, second: Photo): number => {
   return firstKey.localeCompare(secondKey);
 };
 
-/** Adds photos in the order they were taken. Photos without a date go last. */
+/**
+ * Adds new photos after the existing ones, in the order they were taken
+ * (undated last). Existing photos keep their place, since editors can reorder them.
+ */
 export const addPhotosToAlbum = (album: Album, newPhotos: Photo[], now: string): Album => {
   const existingIds = new Set(album.photos.map((photo) => photo.id));
-  const photosToAdd = newPhotos.filter((photo) => !existingIds.has(photo.id));
-  const photos = [...album.photos, ...photosToAdd].sort(compareByTakenAt);
+  const photosToAdd = newPhotos.filter((photo) => !existingIds.has(photo.id)).sort(compareByTakenAt);
+  return { ...album, photos: [...album.photos, ...photosToAdd], updatedAt: now };
+};
+
+/** Puts the album's photos in the given order. The ids must be exactly the album's photos. */
+export const reorderAlbumPhotos = (album: Album, orderedPhotoIds: string[], now: string): Album => {
+  const photosById = new Map(album.photos.map((photo) => [photo.id, photo]));
+  const hasEveryPhotoOnce =
+    orderedPhotoIds.length === album.photos.length &&
+    new Set(orderedPhotoIds).size === orderedPhotoIds.length &&
+    orderedPhotoIds.every((photoId) => photosById.has(photoId));
+  if (!hasEveryPhotoOnce) throw new Error("The new order doesn't match the album's photos");
+
+  const photos = orderedPhotoIds.map((photoId) => photosById.get(photoId)!);
   return { ...album, photos, updatedAt: now };
 };
 
@@ -73,6 +89,7 @@ export const applyAlbumSettings = (album: Album, settings: AlbumSettings, now: s
 export const createEmptyAlbum = (title: string, settings: Omit<AlbumSettings, "title">, now: string): Album => ({
   slug: slugifyTitle(title),
   title: title.trim(),
+  month: settings.month,
   access: settings.access,
   passwordHash: settings.access === "password" ? settings.passwordHash : null,
   photos: [],

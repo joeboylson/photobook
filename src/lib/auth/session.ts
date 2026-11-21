@@ -30,6 +30,13 @@ export const getViewer = async (): Promise<Viewer> => {
   };
 };
 
+/** Null when no editor is signed in. */
+export const getSignedInEditorEmail = async (): Promise<string | null> => {
+  const { editorEmail } = await getSession();
+  const isCurrentEditor = isEditorEmail(editorEmail, readAuthEnv().editorEmails);
+  return isCurrentEditor && editorEmail ? editorEmail : null;
+};
+
 export const requireEditor = async (): Promise<void> => {
   const viewer = await getViewer();
   if (!viewer.isEditor) redirect("/sign-in");

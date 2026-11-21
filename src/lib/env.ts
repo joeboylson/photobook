@@ -26,6 +26,12 @@ export const readStorageEnv = (): StorageEnv => {
   };
 };
 
+// Swaps Google sign-in for a one-click sign-in as the first editor. Vercel runs
+// every deploy, previews included, with NODE_ENV=production, so this can only
+// ever be on for `next dev` on your own machine.
+export const isEditorSignInSkipped = (): boolean =>
+  process.env.NODE_ENV !== "production" && process.env.SKIP_EDITOR_SIGN_IN === "true";
+
 export type AuthEnv = {
   sessionSecret: string;
   googleClientId: string;

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { unlockAlbum, type UnlockAlbumState } from "./actions";
 
@@ -15,7 +16,8 @@ export function UnlockAlbumForm({ slug, title }: { slug: string; title: string }
   const [state, submit, isPending] = useActionState(unlockAlbum.bind(null, slug), INITIAL_STATE);
 
   return (
-    <main className="grid min-h-dvh place-items-center p-4">
+    <div className="relative grid min-h-dvh place-items-center p-4">
+      <SidebarTrigger className="absolute top-4 left-4" />
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -37,12 +39,12 @@ export function UnlockAlbumForm({ slug, title }: { slug: string; title: string }
               />
               {state.isWrongPassword && <FieldError>Wrong password</FieldError>}
             </Field>
-            <Button type="submit" size="icon" aria-label="Open album" disabled={isPending}>
+            <Button type="submit" variant="secondary" size="icon" aria-label="Open album" disabled={isPending}>
               {isPending ? <Spinner /> : <ArrowRight />}
             </Button>
           </form>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }

@@ -3,7 +3,7 @@
 import { ImagePlus } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { addPhotosAction, requestPhotoUploadAction } from "@/app/edit/actions";
+import { addPhotosAction, requestPhotoUploadAction } from "@/app/album-actions";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import type { Photo } from "@/lib/albums/album-types";
@@ -61,7 +61,7 @@ export function PhotoUploader({ slug }: { slug: string }) {
           if (files.length > 0) void uploadFiles(files);
         }}
       />
-      <Button onClick={() => inputRef.current?.click()} disabled={isUploading}>
+      <Button variant="secondary" onClick={() => inputRef.current?.click()} disabled={isUploading}>
         {isUploading ? <Spinner /> : <ImagePlus />}
         {isUploading ? (
           <span className="tabular-nums">

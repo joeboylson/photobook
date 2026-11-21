@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { fitWithinEdge } from "@/lib/photos/photo-dimensions";
-import { describeTakenAt, formatLocalDateTime } from "@/lib/photos/taken-at";
+import { formatLocalDateTime } from "@/lib/photos/taken-at";
 
 describe("fitWithinEdge", () => {
   test("shrinks the longest edge to the limit", () => {
@@ -20,16 +20,5 @@ describe("fitWithinEdge", () => {
 describe("formatLocalDateTime", () => {
   test("uses the local clock parts, zero-padded", () => {
     expect(formatLocalDateTime(new Date(2026, 0, 5, 7, 3, 9))).toBe("2026-01-05T07:03:09");
-  });
-});
-
-describe("describeTakenAt", () => {
-  test("reads the stored time as local time", () => {
-    expect(describeTakenAt("2026-06-27T19:27:55")).toBe("June 27, 2026 · 7:27 PM");
-  });
-
-  test("is null without a usable date", () => {
-    expect(describeTakenAt(null)).toBeNull();
-    expect(describeTakenAt("not a date")).toBeNull();
   });
 });

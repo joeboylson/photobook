@@ -4,7 +4,13 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseAlbumForm } from "@/lib/albums/album-form";
-import { addPhotosToAlbum, applyAlbumSettings, createEmptyAlbum, removePhotoFromAlbum } from "@/lib/albums/album-rules";
+import {
+  addPhotosToAlbum,
+  applyAlbumSettings,
+  createEmptyAlbum,
+  removePhotoFromAlbum,
+  reorderAlbumPhotos,
+} from "@/lib/albums/album-rules";
 import {
   createAlbum,
   deleteAlbumAndPhotos,
@@ -14,7 +20,7 @@ import {
 } from "@/lib/albums/album-store";
 import type { Photo, PhotoSize } from "@/lib/albums/album-types";
 import { hashPassword } from "@/lib/auth/password";
-import { getSession, requireEditor } from "@/lib/auth/session";
+import { requireEditor } from "@/lib/auth/session";
 import { buildPhotoKey } from "@/lib/storage/object-keys";
 import { isWriteConflict, signPhotoUploadUrl } from "@/lib/storage/object-store";
 
@@ -30,19 +36,16 @@ const readAlbumOrThrow = async (slug: string) => {
   return stored;
 };
 
-const refreshAlbumPages = (slug: string) => {
-  revalidatePath("/", "layout");
-  revalidatePath(`/edit/albums/${slug}`);
-};
+const refreshAllPages = () => revalidatePath("/", "layout");
 
 export async function createAlbumAction(_previous: FormResult, formData: FormData): Promise<FormResult> {
   await requireEditor();
   const parsed = parseAlbumForm(formData, false);
   if (parsed.error !== null) return { error: parsed.error, savedAt: null };
 
-  const { title, access, newPassword } = parsed.form;
+  const { title, month, access, newPassword } = parsed.form;
   const passwordHash = newPassword ? hashPassword(newPassword) : null;
-  const album = createEmptyAlbum(title, { access, passwordHash }, nowIso());
+  const album = createEmptyAlbum(title, { month, access, passwordHash }, nowIso());
 
   try {
     await createAlbum(album);
@@ -51,8 +54,8 @@ export async function createAlbumAction(_previous: FormResult, formData: FormDat
     throw error;
   }
 
-  revalidatePath("/", "layout");
-  redirect(`/edit/albums/${album.slug}`);
+  refreshAllPages();
+  redirect(`/albums/${album.slug}`);
 }
 
 export async function updateAlbumSettingsAction(
@@ -65,11 +68,11 @@ export async function updateAlbumSettingsAction(
   const parsed = parseAlbumForm(formData, Boolean(album.passwordHash));
   if (parsed.error !== null) return { error: parsed.error, savedAt: null };
 
-  const { title, access, newPassword } = parsed.form;
+  const { title, month, access, newPassword } = parsed.form;
   const passwordHash = newPassword ? hashPassword(newPassword) : album.passwordHash;
-  await saveAlbum(applyAlbumSettings(album, { title, access, passwordHash }, nowIso()), etag);
+  await saveAlbum(applyAlbumSettings(album, { title, month, access, passwordHash }, nowIso()), etag);
 
-  refreshAlbumPages(slug);
+  refreshAllPages();
   return { error: null, savedAt: Date.now() };
 }
 
@@ -102,7 +105,7 @@ export async function addPhotosAction(slug: string, photos: Photo[]): Promise<vo
   const { value: album, etag } = await readAlbumOrThrow(slug);
   const cleanPhotos = photos.map(({ id, width, height, takenAt }) => ({ id, width, height, takenAt, caption: "" }));
   await saveAlbum(addPhotosToAlbum(album, cleanPhotos, nowIso()), etag);
-  refreshAlbumPages(slug);
+  refreshAllPages();
 }
 
 export async function removePhotoAction(slug: string, photoId: string): Promise<void> {
@@ -110,19 +113,20 @@ export async function removePhotoAction(slug: string, photoId: string): Promise<
   const { value: album, etag } = await readAlbumOrThrow(slug);
   await saveAlbum(removePhotoFromAlbum(album, photoId, nowIso()), etag);
   await deletePhotoFiles([photoId]);
-  refreshAlbumPages(slug);
+  refreshAllPages();
+}
+
+export async function reorderPhotosAction(slug: string, orderedPhotoIds: string[]): Promise<void> {
+  await requireEditor();
+  const { value: album, etag } = await readAlbumOrThrow(slug);
+  await saveAlbum(reorderAlbumPhotos(album, orderedPhotoIds, nowIso()), etag);
+  refreshAllPages();
 }
 
 export async function deleteAlbumAction(slug: string): Promise<void> {
   await requireEditor();
   const { value: album } = await readAlbumOrThrow(slug);
   await deleteAlbumAndPhotos(album);
-  revalidatePath("/", "layout");
-  redirect("/edit");
-}
-
-export async function signOutAction(): Promise<void> {
-  const session = await getSession();
-  session.destroy();
+  refreshAllPages();
   redirect("/");
 }

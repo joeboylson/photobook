@@ -4,8 +4,8 @@ Photo albums for family and friends. Each album is **public**, behind a short
 **password**, or **private** (only the editors, signed in with Google).
 
 - `/` lists the albums a visitor can see; `/albums/<slug>` shows one, view-only.
-- `/edit` is for the editors: create albums, set who can see them, add and
-  remove photos.
+- Signed-in editors use the same pages: the sidebar's + creates an album, and
+  the ⋯ menu on an album edits it, adds and removes photos, or deletes it.
 
 ## How it fits together
 

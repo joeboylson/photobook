@@ -9,8 +9,8 @@ const buildFormData = (fields: Record<string, string>): FormData => {
 
 describe("parseAlbumForm", () => {
   test("reads a complete form", () => {
-    const parsed = parseAlbumForm(buildFormData({ title: " Wedding ", access: "password", password: "cake" }), false);
-    expect(parsed).toEqual({ form: { title: "Wedding", access: "password", newPassword: "cake" }, error: null });
+    const parsed = parseAlbumForm(buildFormData({ title: " Wedding ", month: "2026-06", access: "password", password: "cake" }), false);
+    expect(parsed).toEqual({ form: { title: "Wedding", month: "2026-06", access: "password", newPassword: "cake" }, error: null });
   });
 
   test("needs a name with letters or numbers", () => {
@@ -18,15 +18,22 @@ describe("parseAlbumForm", () => {
   });
 
   test("rejects an unknown access level", () => {
-    expect(parseAlbumForm(buildFormData({ title: "A", access: "secret" }), false).error).toBe("Pick who can see it");
+    expect(parseAlbumForm(buildFormData({ title: "A", month: "2026-06", access: "secret" }), false).error).toBe("Pick who can see it");
   });
 
   test("needs a password for a new password album", () => {
-    expect(parseAlbumForm(buildFormData({ title: "A", access: "password" }), false).error).toBe("Add a password");
+    expect(parseAlbumForm(buildFormData({ title: "A", month: "2026-06", access: "password" }), false).error).toBe("Add a password");
   });
 
   test("keeps the existing password when the field is left blank", () => {
-    const parsed = parseAlbumForm(buildFormData({ title: "A", access: "password", password: "" }), true);
+    const parsed = parseAlbumForm(buildFormData({ title: "A", month: "2026-06", access: "password", password: "" }), true);
     expect(parsed.form?.newPassword).toBeNull();
+  });
+
+  test("needs a month and year", () => {
+    expect(parseAlbumForm(buildFormData({ title: "A", access: "public" }), false).error).toBe("Pick a month and year");
+    expect(parseAlbumForm(buildFormData({ title: "A", month: "2026-13", access: "public" }), false).error).toBe(
+      "Pick a month and year",
+    );
   });
 });

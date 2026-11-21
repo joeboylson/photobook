@@ -1,11 +1,10 @@
 "use client";
 
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { ViewerPhoto } from "@/lib/albums/album-types";
-import { describeTakenAt } from "@/lib/photos/taken-at";
 import { cn } from "@/lib/utils";
 import { Lightbox } from "./lightbox";
 import { SWIPE_EXIT_MS, useSwipe } from "./use-swipe";
@@ -102,13 +101,11 @@ export function PhotoViewer({
     });
   }, [previousPhoto, nextPhoto]);
 
-  const takenAtLabel = photo ? describeTakenAt(photo.takenAt) : null;
-
   return (
     <DialogPrimitive.Root open={Boolean(photo)} onOpenChange={(isOpen) => !isOpen && onOpenPhoto(null)}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/90 data-open:animate-in data-open:fade-in-0" />
-        <DialogPrimitive.Popup className="fixed inset-0 z-50 flex flex-col outline-none md:flex-row">
+        <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black data-open:animate-in data-open:fade-in-0" />
+        <DialogPrimitive.Popup className="fixed inset-0 z-50 flex outline-none">
           {photo && (
             <>
               <div
@@ -156,17 +153,20 @@ export function PhotoViewer({
                 >
                   <X />
                 </DialogPrimitive.Close>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  aria-label="Download photo"
+                  nativeButton={false}
+                  render={<a href={photo.downloadUrl} download />}
+                  className="absolute top-2 right-2 rounded-full opacity-80 hover:opacity-100"
+                >
+                  <Download />
+                </Button>
               </div>
 
-              <aside className="max-h-[35dvh] shrink-0 space-y-2 overflow-y-auto bg-background p-4 text-sm md:max-h-none md:w-80 md:border-l">
-                <DialogPrimitive.Title className={cn("text-base", !photo.caption && "sr-only")}>
-                  {photo.caption || `Photo ${index + 1}`}
-                </DialogPrimitive.Title>
-                {takenAtLabel && <p className="text-muted-foreground">{takenAtLabel}</p>}
-                <p className="text-xs text-muted-foreground tabular-nums">
-                  {index + 1} / {photos.length}
-                </p>
-              </aside>
+              {/* The dialog needs a title for screen readers, but only the photo shows on screen. */}
+              <DialogPrimitive.Title className="sr-only">{photo.caption || `Photo ${index + 1}`}</DialogPrimitive.Title>
               <Lightbox photo={photo} isOpen={isLightboxOpen} onOpenChange={setIsLightboxOpen} />
             </>
           )}

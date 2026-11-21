@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { ALBUMS_PREFIX, PHOTO_SIZES } from "@/lib/constants";
 import { buildAlbumKey, buildPhotoKey, parseAlbumSlugFromKey } from "@/lib/storage/object-keys";
 import {
@@ -15,8 +16,14 @@ const PHOTO_SIZE_NAMES = Object.keys(PHOTO_SIZES) as PhotoSize[];
 export const listPhotoObjectKeys = (photoId: string): string[] =>
   PHOTO_SIZE_NAMES.map((size) => buildPhotoKey(photoId, size));
 
-export const readAlbum = (slug: string): Promise<StoredJson<Album> | null> =>
-  readJsonObject<Album>(buildAlbumKey(slug));
+// Albums saved before albums had months have no month field at all.
+type SavedAlbum = Omit<Album, "month"> & { month?: string | null };
+
+export const readAlbum = async (slug: string): Promise<StoredJson<Album> | null> => {
+  const stored = await readJsonObject<SavedAlbum>(buildAlbumKey(slug));
+  if (!stored) return null;
+  return { ...stored, value: { ...stored.value, month: stored.value.month ?? null } };
+};
 
 export const listAlbums = async (): Promise<Album[]> => {
   const keys = await listObjectKeys(ALBUMS_PREFIX);
@@ -28,7 +35,8 @@ export const listAlbums = async (): Promise<Album[]> => {
     .sort((first, second) => second.createdAt.localeCompare(first.createdAt));
 };
 
-export const listAlbumSummaries = async (): Promise<AlbumSummary[]> => (await listAlbums()).map(summarizeAlbum);
+// Cached per request: the gallery sidebar and the home page both list albums.
+export const listAlbumSummaries = cache(async (): Promise<AlbumSummary[]> => (await listAlbums()).map(summarizeAlbum));
 
 export const createAlbum = (album: Album): Promise<void> =>
   writeJsonObject(buildAlbumKey(album.slug), album, { onlyIfNew: true });

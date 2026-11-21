@@ -8,8 +8,12 @@ import {
   OAUTH_STATE_COOKIE_NAME,
   OAUTH_VERIFIER_COOKIE_NAME,
 } from "@/lib/constants";
+import { isEditorSignInSkipped } from "@/lib/env";
 
 export async function GET(request: NextRequest) {
+  // Locally the sidebar's Sign in button signs you in, so send people there.
+  if (isEditorSignInSkipped()) return NextResponse.redirect(new URL("/", request.nextUrl.origin));
+
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
   const authorizationUrl = createGoogleClient(request.nextUrl.origin).createAuthorizationURL(

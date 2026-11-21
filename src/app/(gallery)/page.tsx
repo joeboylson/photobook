@@ -1,8 +1,6 @@
-import { LogIn, Pencil } from "lucide-react";
-import Link from "next/link";
 import { AlbumCardGrid, type AlbumCard } from "@/components/albums/album-card-grid";
-import { IconLink } from "@/components/icon-link";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getAlbumVisibility, listVisibleSummaries } from "@/lib/albums/album-rules";
 import { listAlbumSummaries } from "@/lib/albums/album-store";
 import { signCoverUrl } from "@/lib/albums/viewer-photos";
@@ -23,16 +21,10 @@ export default async function HomePage() {
   return (
     <div className="mx-auto max-w-[1600px] px-4">
       <header className="flex items-center gap-2 py-4">
-        <h1 className="flex-1 text-lg font-semibold">
-          <Link href="/">{SITE_NAME}</Link>
-        </h1>
-        {viewer.isEditor ? (
-          <IconLink href="/edit" label="Edit" icon={Pencil} />
-        ) : (
-          <IconLink href="/sign-in" label="Sign in" icon={LogIn} prefetch={false} />
-        )}
+        <SidebarTrigger />
+        <h1 className="flex-1 text-lg font-semibold">{SITE_NAME}</h1>
       </header>
-      <main className="pb-16">
+      <div className="pb-16">
         {albums.length === 0 ? (
           <Empty className="border border-dashed">
             <EmptyHeader>
@@ -42,7 +34,7 @@ export default async function HomePage() {
         ) : (
           <AlbumCardGrid albums={albums} buildHref={(slug) => `/albums/${slug}`} />
         )}
-      </main>
+      </div>
     </div>
   );
 }

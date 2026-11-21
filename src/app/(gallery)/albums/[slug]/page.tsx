@@ -5,6 +5,7 @@ import { getAlbumVisibility } from "@/lib/albums/album-rules";
 import { readAlbum } from "@/lib/albums/album-store";
 import { signViewerPhotos } from "@/lib/albums/viewer-photos";
 import { getViewer } from "@/lib/auth/session";
+import { readSavedGridSize } from "@/lib/auth/view-preferences";
 import { UnlockAlbumForm } from "./unlock-album-form";
 
 export async function generateMetadata({ params }: PageProps<"/albums/[slug]">): Promise<Metadata> {
@@ -25,5 +26,24 @@ export default async function AlbumPage({ params }: PageProps<"/albums/[slug]">)
   if (visibility === "hidden") notFound();
   if (visibility === "needs-password") return <UnlockAlbumForm slug={album.slug} title={album.title} />;
 
-  return <AlbumGallery title={album.title} photos={await signViewerPhotos(album.photos)} />;
+  // Editors get the edit menu. Only a yes/no about the password goes to the browser, never its hash.
+  const editableAlbum = viewer.isEditor
+    ? {
+        slug: album.slug,
+        title: album.title,
+        month: album.month,
+        access: album.access,
+        hasPassword: Boolean(album.passwordHash),
+      }
+    : null;
+  const [photos, savedGridSize] = await Promise.all([signViewerPhotos(album.slug, album.photos), readSavedGridSize()]);
+  return (
+    <AlbumGallery
+      slug={album.slug}
+      title={album.title}
+      photos={photos}
+      savedGridSize={savedGridSize}
+      editableAlbum={editableAlbum}
+    />
+  );
 }

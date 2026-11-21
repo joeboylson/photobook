@@ -2,6 +2,8 @@ export const SITE_NAME = "Photobook";
 
 export const ALBUM_ACCESS_LEVELS = ["public", "password", "private"] as const;
 
+export const MONTHS_PER_YEAR = 12;
+
 export const PHOTO_SIZES = {
   thumb: { maxEdgePx: 400, quality: 0.7 },
   full: { maxEdgePx: 2000, quality: 0.82 },
@@ -23,6 +25,9 @@ export const SIGNED_URL_LIFETIME_SECONDS = 2 * 60 * 60;
 export const UPLOAD_URL_LIFETIME_SECONDS = 15 * 60;
 
 export const SESSION_COOKIE_NAME = "photobook_session";
+export const GRID_SIZE_COOKIE_NAME = "photobook_grid_size";
+export const ALBUM_SORT_COOKIE_NAME = "photobook_album_sort";
+export const PREFERENCE_COOKIE_LIFETIME_SECONDS = 365 * 24 * 60 * 60;
 export const SESSION_LIFETIME_SECONDS = 30 * 24 * 60 * 60;
 export const OAUTH_STATE_COOKIE_NAME = "photobook_oauth_state";
 export const OAUTH_VERIFIER_COOKIE_NAME = "photobook_oauth_verifier";

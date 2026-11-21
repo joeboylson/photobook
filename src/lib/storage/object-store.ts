@@ -99,9 +99,16 @@ export const deleteObjects = async (keys: string[]): Promise<void> => {
 export const getCurrentSigningDate = (nowMs: number): Date =>
   new Date(Math.floor(nowMs / SIGNED_URL_WINDOW_MS) * SIGNED_URL_WINDOW_MS);
 
-export const signDownloadUrl = (key: string, signingDate: Date): Promise<string> => {
+/**
+ * With `saveAsFileName`, the link tells the browser to save the file under that
+ * name instead of showing it. A plain download link can't do this, because the
+ * bucket is on another site.
+ */
+export const signDownloadUrl = (key: string, signingDate: Date, saveAsFileName?: string): Promise<string> => {
   const { client, bucketName } = getStorage();
-  return getSignedUrl(client, new GetObjectCommand({ Bucket: bucketName, Key: key }), {
+  const contentDisposition = saveAsFileName ? `attachment; filename="${saveAsFileName}"` : undefined;
+  const command = new GetObjectCommand({ Bucket: bucketName, Key: key, ResponseContentDisposition: contentDisposition });
+  return getSignedUrl(client, command, {
     expiresIn: SIGNED_URL_LIFETIME_SECONDS,
     signingDate,
   });

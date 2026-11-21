@@ -11,7 +11,7 @@ export default function SignInDeniedPage() {
           <EmptyTitle>This account can't edit</EmptyTitle>
         </EmptyHeader>
         <EmptyContent>
-          <Button variant="outline" nativeButton={false} render={<Link href="/" />}>
+          <Button variant="secondary" nativeButton={false} render={<Link href="/" />}>
             <House /> Home
           </Button>
         </EmptyContent>

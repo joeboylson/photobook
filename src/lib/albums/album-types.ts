@@ -17,6 +17,8 @@ export type Album = {
   slug: string;
   title: string;
   access: AlbumAccess;
+  /** When the album is from, like "2026-06". Null for albums made before albums had months. */
+  month: string | null;
   /** Only set for password albums. Never sent to the browser. */
   passwordHash: string | null;
   photos: Photo[];
@@ -28,6 +30,7 @@ export type AlbumSummary = {
   slug: string;
   title: string;
   access: AlbumAccess;
+  month: string | null;
   photoCount: number;
   coverPhotoId: string | null;
 };
@@ -35,6 +38,8 @@ export type AlbumSummary = {
 export type ViewerPhoto = Photo & {
   thumbUrl: string;
   fullUrl: string;
+  /** The full-size copy again, but the browser saves it instead of showing it. */
+  downloadUrl: string;
 };
 
 export type Viewer = {
@@ -46,6 +51,9 @@ export type AlbumVisibility = "visible" | "needs-password" | "hidden";
 
 export type AlbumSettings = {
   title: string;
+  month: string;
   access: AlbumAccess;
   passwordHash: string | null;
 };
+
+export type AlbumSort = "date" | "title";

@@ -7,6 +7,7 @@ import {
   isAlbumAccess,
   listVisibleSummaries,
   removePhotoFromAlbum,
+  reorderAlbumPhotos,
   slugifyTitle,
   summarizeAlbum,
 } from "@/lib/albums/album-rules";
@@ -21,7 +22,7 @@ const EDITOR: Viewer = { isEditor: true, unlockedAlbumSlugs: [] };
 const buildPhoto = (id: string, takenAt: string | null): Photo => ({ id, width: 4, height: 3, takenAt, caption: "" });
 
 const buildAlbum = (overrides: Partial<Album> = {}): Album => ({
-  ...createEmptyAlbum("Test Album", { access: "public", passwordHash: null }, EARLIER),
+  ...createEmptyAlbum("Test Album", { month: "2026-06", access: "public", passwordHash: null }, EARLIER),
   ...overrides,
 });
 
@@ -74,6 +75,7 @@ describe("listVisibleSummaries", () => {
     slug: access,
     title: access,
     access,
+    month: null,
     photoCount: 0,
     coverPhotoId: null,
   }));
@@ -88,14 +90,14 @@ describe("listVisibleSummaries", () => {
 });
 
 describe("addPhotosToAlbum", () => {
-  test("keeps photos in the order they were taken, undated last", () => {
+  test("adds new photos after the existing ones, in the order they were taken, undated last", () => {
     const album = buildAlbum({ photos: [buildPhoto("b", "2026-06-27T12:00:00")] });
     const updated = addPhotosToAlbum(
       album,
       [buildPhoto("c", null), buildPhoto("a", "2026-06-27T09:00:00")],
       LATER,
     );
-    expect(updated.photos.map((photo) => photo.id)).toEqual(["a", "b", "c"]);
+    expect(updated.photos.map((photo) => photo.id)).toEqual(["b", "a", "c"]);
     expect(updated.updatedAt).toBe(LATER);
   });
 
@@ -111,6 +113,22 @@ describe("addPhotosToAlbum", () => {
   });
 });
 
+describe("reorderAlbumPhotos", () => {
+  const album = buildAlbum({ photos: [buildPhoto("a", null), buildPhoto("b", null), buildPhoto("c", null)] });
+
+  test("puts the photos in the given order", () => {
+    const updated = reorderAlbumPhotos(album, ["c", "a", "b"], LATER);
+    expect(updated.photos.map((photo) => photo.id)).toEqual(["c", "a", "b"]);
+    expect(updated.updatedAt).toBe(LATER);
+  });
+
+  test("rejects an order that drops, repeats or invents a photo", () => {
+    expect(() => reorderAlbumPhotos(album, ["a", "b"], LATER)).toThrow();
+    expect(() => reorderAlbumPhotos(album, ["a", "a", "b"], LATER)).toThrow();
+    expect(() => reorderAlbumPhotos(album, ["a", "b", "z"], LATER)).toThrow();
+  });
+});
+
 describe("removePhotoFromAlbum", () => {
   test("removes only that photo", () => {
     const album = buildAlbum({ photos: [buildPhoto("a", null), buildPhoto("b", null)] });
@@ -121,14 +139,14 @@ describe("removePhotoFromAlbum", () => {
 describe("applyAlbumSettings", () => {
   test("drops the password when the album stops being a password album", () => {
     const album = buildAlbum({ access: "password", passwordHash: "hash" });
-    const updated = applyAlbumSettings(album, { title: "New", access: "public", passwordHash: "hash" }, LATER);
+    const updated = applyAlbumSettings(album, { title: "New", month: "2026-06", access: "public", passwordHash: "hash" }, LATER);
     expect(updated.passwordHash).toBeNull();
     expect(updated.title).toBe("New");
   });
 
   test("keeps the slug when the title changes, so links keep working", () => {
     const album = buildAlbum();
-    expect(applyAlbumSettings(album, { title: "Renamed", access: "public", passwordHash: null }, LATER).slug).toBe(
+    expect(applyAlbumSettings(album, { title: "Renamed", month: "2026-06", access: "public", passwordHash: null }, LATER).slug).toBe(
       album.slug,
     );
   });
@@ -136,8 +154,8 @@ describe("applyAlbumSettings", () => {
 
 describe("createEmptyAlbum", () => {
   test("only keeps a password for password albums", () => {
-    expect(createEmptyAlbum("A", { access: "private", passwordHash: "hash" }, EARLIER).passwordHash).toBeNull();
-    expect(createEmptyAlbum("A", { access: "password", passwordHash: "hash" }, EARLIER).passwordHash).toBe("hash");
+    expect(createEmptyAlbum("A", { month: "2026-06", access: "private", passwordHash: "hash" }, EARLIER).passwordHash).toBeNull();
+    expect(createEmptyAlbum("A", { month: "2026-06", access: "password", passwordHash: "hash" }, EARLIER).passwordHash).toBe("hash");
   });
 });
 

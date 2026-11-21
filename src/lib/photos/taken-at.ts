@@ -11,14 +11,3 @@ export const formatLocalDateTime = (date: Date): string => {
   return `${datePart}T${timePart}`;
 };
 
-/** "June 27, 2026 · 7:27 PM" — read as local time, so it shows what the camera showed. */
-export const describeTakenAt = (takenAt: string | null): string | null => {
-  if (!takenAt) return null;
-
-  const date = new Date(takenAt);
-  if (Number.isNaN(date.getTime())) return null;
-
-  const day = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-  const time = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  return `${day} · ${time}`;
-};

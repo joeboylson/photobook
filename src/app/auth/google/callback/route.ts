@@ -33,5 +33,5 @@ export async function GET(request: NextRequest) {
   session.editorEmail = claims.email;
   await session.save();
 
-  return NextResponse.redirect(new URL("/edit", request.nextUrl.origin));
+  return NextResponse.redirect(new URL("/", request.nextUrl.origin));
 }
